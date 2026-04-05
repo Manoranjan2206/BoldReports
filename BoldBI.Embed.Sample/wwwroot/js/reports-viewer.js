@@ -32,10 +32,13 @@ class BoldReportsViewer {
     }
 
     waitForSDK() {
-        if (typeof jQuery !== 'undefined' && typeof BoldReports !== 'undefined') {
+        if (typeof jQuery !== 'undefined' && typeof BoldReports !== 'undefined' && typeof $('#viewer-0').boldReportViewer !== 'undefined') {
             console.log('[BoldReportsViewer] Bold Reports SDK loaded ✓');
             // Load first report immediately
-            setTimeout(() => this.loadReport(0), 500);
+            setTimeout(() => {
+                this.loadReport(0);
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
+            }, 500);
         } else {
             console.log('[BoldReportsViewer] Waiting for Bold Reports SDK...');
             setTimeout(() => this.waitForSDK(), 300);
@@ -108,11 +111,19 @@ class BoldReportsViewer {
             }
         });
 
-        // Destroy previous viewer if exists
-        this.destroyViewer(reportIndex);
-
-        // Load report
-        this.loadReport(reportIndex);
+        // Load report if not loaded
+        if (!this.isReportLoaded(reportIndex)) {
+            this.loadReport(reportIndex);
+        } else {
+            // Trigger resize for the viewer control so it repaints
+            const viewerElement = $(`#viewer-${reportIndex}`);
+            const viewerControl = viewerElement.data('boldReportViewer');
+            if (viewerControl && typeof viewerControl.resize === 'function') {
+                setTimeout(() => viewerControl.resize(), 100);
+            } else {
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+            }
+        }
     }
 
     destroyViewer(reportIndex) {
@@ -495,10 +506,10 @@ class BoldReportsViewer {
             summary.textContent = 'No values selected';
             summary.style.color = '#999';
         } else if (selectedCount === totalCount) {
-            summary.innerHTML = `<strong>✓ All ${totalCount} values selected</strong>`;
-            summary.style.background = '#e8f5e9';
-            summary.style.borderColor = '#4caf50';
-            summary.style.color = '#2e7d32';
+            summary.innerHTML = `✓ All ${totalCount} values selected`;
+            summary.style.background = '#f0fdf4';
+            summary.style.borderColor = '#86efac';
+            summary.style.color = '#16a34a';
         } else if (selectedCount === 1) {
             summary.innerHTML = `<strong>1 value selected:</strong> ${checkedBoxes[0].value}`;
         } else {
