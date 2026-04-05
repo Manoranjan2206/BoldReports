@@ -1,0 +1,679 @@
+@{
+    ViewBag.Title = "Bold Reports";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bold Reports - EcoInteractive</title>
+    <link rel="icon" type="image/png" href="~/Elogo.png" />
+
+    <!-- Bold Reports Viewer CSS -->
+    <link href="https://cdn.boldreports.com/12.2.6/content/v2.0/tailwind-light/bold.report-viewer.min.css" rel="stylesheet" />
+    
+    <!-- Custom Reports Styles -->
+    <link href="~/css/reports.css" rel="stylesheet" />
+
+    <!-- Bold Reports Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.boldreports.com/12.2.6/scripts/v2.0/common/bold.reports.common.min.js"></script>
+    <script src="https://cdn.boldreports.com/12.2.6/scripts/v2.0/common/bold.reports.widgets.min.js"></script>
+    <script src="https://cdn.boldreports.com/12.2.6/scripts/v2.0/bold.report-viewer.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fb;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            min-height: 0;
+        }
+
+        .sidebar {
+            width: 180px;
+            background: #2d3e50;
+            color: #fff;
+            padding: 20px 14px;
+            flex-shrink: 0;
+        }
+
+        .logo-img {
+            width: 140px;
+            margin-bottom: 38px;
+            cursor: pointer;
+        }
+
+        .menu {
+            list-style: none;
+        }
+
+        .menu li {
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: rgba(255,255,255,.88);
+            transition: .2s ease;
+        }
+
+        .menu li:hover {
+            background: rgba(255,255,255,.12);
+        }
+
+        .menu li.active {
+            background: #2f6ee8;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 58px;
+            flex-shrink: 0;
+            background: #2d3e50;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 24px;
+        }
+
+        .client-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .client-selector label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .client-selector select {
+            padding: 7px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,.35);
+            background: rgba(255,255,255,.16);
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .client-selector select option {
+            color: #111827;
+            background: #fff;
+        }
+
+        .report-header {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .report-header h1 {
+            margin: 0;
+            padding: 14px 20px;
+            font-size: 30px;
+            font-weight: 700;
+            color: #111827;
+            border-left: 4px solid #2f6ee8;
+        }
+
+        .tabs-container {
+            display: flex;
+            overflow-x: auto;
+            border-top: 1px solid #eef2f7;
+            border-bottom: 1px solid #e5e7eb;
+            background: #fff;
+        }
+
+        .tab-button {
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            color: #2f6ee8;
+            background: #f8fafc;
+        }
+
+        .tab-button.active {
+            color: #2f6ee8;
+            border-bottom-color: #2f6ee8;
+        }
+
+        .tab-icon {
+            font-size: 14px;
+        }
+
+        .content-container {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .report-content {
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            position: relative;
+            background: #f3f5f9;
+            overflow: hidden;
+        }
+
+        .report-loader {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.95);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(2px);
+        }
+
+        .spinner {
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #2f6ee8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+        }
+
+        .report-tab {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .2s ease;
+        }
+
+        .report-tab.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .report-viewer {
+            width: 100%;
+            height: 100%;
+        }
+
+        .parameters-panel {
+            width: 340px;
+            flex-shrink: 0;
+            background: #fff;
+            border-left: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .panel-header {
+            flex-shrink: 0;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-size: 25px;
+            color: #111827;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            border-left: 4px solid #2f6ee8;
+            padding-left: 10px;
+        }
+
+        .btn-refresh {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #d6dce5;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            color: #2f6ee8;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .btn-refresh:hover {
+            background: #eff6ff;
+            border-color: #b9d3ff;
+        }
+
+        .parameters-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 12px 14px;
+        }
+
+        .parameters-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .parameters-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+
+        .parameter-item {
+            border: 1px solid #dbe2ea;
+            border-radius: 10px;
+            background: #fff;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 0 rgba(16,24,40,.02);
+        }
+
+        .parameter-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .parameter-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .toggle-dropdown {
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+
+        .toggle-dropdown:hover {
+            color: #2f6ee8;
+        }
+
+        .dropdown-icon {
+            display: inline-block;
+            transition: transform .2s ease;
+            font-size: 14px;
+        }
+
+        .toggle-dropdown.open .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        .parameter-search-box {
+            margin-top: 8px;
+        }
+
+        .search-input {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #2f6ee8;
+            box-shadow: 0 0 0 2px rgba(47,110,232,.12);
+            outline: none;
+        }
+
+        button:focus,
+        input:focus {
+            outline: 2px solid #2f6ee8;
+            outline-offset: 2px;
+        }
+
+        .tab-button:focus {
+            outline: 2px solid #2f6ee8;
+            outline-offset: -2px;
+        }
+
+        .parameter-dropdown {
+            margin-top: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .parameter-actions {
+            padding: 8px;
+            border-bottom: 1px solid #eef2f7;
+            background: #f8fafc;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-select-all,
+        .btn-deselect-all {
+            flex: 1;
+            border: none;
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .btn-select-all {
+            background: #10b981;
+        }
+
+        .btn-deselect-all {
+            background: #ef4444;
+        }
+
+        .parameter-options {
+            max-height: 210px;
+            overflow-y: auto;
+        }
+
+        .parameter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            font-size: 12px;
+            color: #334155;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .parameter-option:last-child {
+            border-bottom: none;
+        }
+
+        .parameter-option:hover {
+            background: #f8fafc;
+        }
+
+        .parameter-option input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: #2f6ee8;
+        }
+
+        .option-label {
+            flex: 1;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .selected-values {
+            margin-top: 8px;
+            border-top: 1px solid #eef2f7;
+            padding-top: 8px;
+        }
+
+        .panel-footer {
+            flex-shrink: 0;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+            padding: 14px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-apply,
+        .btn-reset {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-apply {
+            background: #2f6ee8;
+            color: #fff;
+            box-shadow: 0 3px 8px rgba(47,110,232,.25);
+            transition: all .2s ease;
+        }
+
+        .btn-apply:hover:not(:disabled) {
+            background: #255fd1;
+            box-shadow: 0 4px 12px rgba(47,110,232,.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-apply:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-apply:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-reset {
+            background: #fff;
+            color: #475569;
+            border: 1px solid #d7dee8;
+            min-width: 100px;
+            transition: all .2s ease;
+        }
+
+        .btn-reset:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: #c5cce3;
+        }
+
+        .btn-reset:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" role="application" aria-label="Report Viewer Application">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" role="navigation" aria-label="Main navigation">
+            <img src="~/Ecointeractive.png" class="logo-img" onclick="window.location.href='@Url.Action("Index", "Home")'" alt="EcoInteractive Logo" />
+
+            <ul class="menu" role="menubar">
+                <li role="menuitem" onclick="window.location.href='@Url.Action("Index", "Home")'" tabindex="0">
+                    Transportation Project Analytics Dashboard
+                </li>
+                <li role="menuitem" onclick="window.location.href='@Url.Action("Index", "Home")'" tabindex="0">
+                    Eco Interactive Reports Dashboard
+                </li>
+                <li class="active" role="menuitem" aria-current="page" tabindex="0">
+                    Eco Interactive Reports
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top bar -->
+            <div class="top-bar" role="toolbar">
+                <div class="client-selector">
+                    <label for="clientDropdown">Client</label>
+                    <select id="clientDropdown" onchange="setClientCookie()" aria-label="Select client">
+                        <option value="1">Eco Projects-Client 1</option>
+                        <option value="2">Eco Trackers-Client 2</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Report Tabs Header -->
+            <div class="report-header">
+                <h1>Report Viewer</h1>
+                <div class="tabs-container" role="tablist" aria-label="Report tabs">
+                    <button class="tab-button active" data-report="0" role="tab" aria-selected="true" aria-controls="report-pane-0" id="tab-0">
+                        <span class="tab-icon">📊</span>
+                        <span class="tab-title">Project List Report</span>
+                    </button>
+                    <button class="tab-button" data-report="1" role="tab" aria-selected="false" aria-controls="report-pane-1" id="tab-1">
+                        <span class="tab-icon">📈</span>
+                        <span class="tab-title">Project Overview Report</span>
+                    </button>
+                    <button class="tab-button" data-report="2" role="tab" aria-selected="false" aria-controls="report-pane-2" id="tab-2">
+                        <span class="tab-icon">📍</span>
+                        <span class="tab-title">Location Details Report</span>
+                    </button>
+                    <button class="tab-button" data-report="3" role="tab" aria-selected="false" aria-controls="report-pane-3" id="tab-3">
+                        <span class="tab-icon">💰</span>
+                        <span class="tab-title">Funding Details Report</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-container">
+                <!-- Report Content Area -->
+                <div class="report-content">
+                    <!-- Loading Indicator -->
+                    <div class="report-loader">
+                        <div class="spinner"></div>
+                        <div style="margin-top: 12px; font-size: 14px; color: #666;">Loading report...</div>
+                    </div>
+
+                    <!-- Report Tabs Panes -->
+                    <div class="report-tab active" id="report-pane-0" data-report-index="0" role="tabpanel" aria-labelledby="tab-0">
+                        <div class="report-viewer" id="viewer-0"></div>
+                    </div>
+                    <div class="report-tab" id="report-pane-1" data-report-index="1" role="tabpanel" aria-labelledby="tab-1">
+                        <div class="report-viewer" id="viewer-1"></div>
+                    </div>
+                    <div class="report-tab" id="report-pane-2" data-report-index="2" role="tabpanel" aria-labelledby="tab-2">
+                        <div class="report-viewer" id="viewer-2"></div>
+                    </div>
+                    <div class="report-tab" id="report-pane-3" data-report-index="3" role="tabpanel" aria-labelledby="tab-3">
+                        <div class="report-viewer" id="viewer-3"></div>
+                    </div>
+                </div>
+
+                <!-- Parameters Panel (Right Sidebar) -->
+                <aside class="parameters-panel" aria-label="Report parameters panel">
+                    <div class="panel-header">
+                        <h2>Parameters</h2>
+                        <button class="btn-refresh" title="Refresh all reports" aria-label="Refresh all reports with current parameters">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                                <path d="M21 3v5h-5"/>
+                                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                                <path d="M3 21v-5h5"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="parameters-list" id="parameters-container">
+                        <!-- Parameters will be generated here by JavaScript -->
+                    </div>
+
+                    <div class="panel-footer">
+                        <button class="btn-apply" id="btn-apply-params" aria-label="Apply selected parameters to all reports">Apply Parameters</button>
+                        <button class="btn-reset" id="btn-reset-params" aria-label="Reset all parameters to default values">Reset</button>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden template for multi-select parameter -->
+    <template id="parameter-template">
+        <div class="parameter-item">
+            <div class="parameter-header">
+                <label class="parameter-label"></label>
+                <button class="toggle-dropdown" title="Toggle dropdown">
+                    <span class="dropdown-icon">▼</span>
+                </button>
+            </div>
+            <div class="parameter-search-box" style="display: none;">
+                <input type="text" class="search-input" placeholder="Search...">
+            </div>
+            <div class="parameter-dropdown" style="display: none;">
+                <div class="parameter-actions">
+                    <button class="btn-select-all">Select All</button>
+                    <button class="btn-deselect-all">Deselect All</button>
+                </div>
+                <div class="parameter-options">
+                    <!-- Options will be generated here -->
+                </div>
+            </div>
+            <div class="selected-values">
+                <!-- Selected values will be displayed here -->
+            </div>
+        </div>
+    </template>
+
+    <!-- Scripts -->
+    <!-- Load in correct order: config → parameters → viewer -->
+    <script src="~/js/bold-reports-config.js"></script>
+    <script src="~/js/parameters.js"></script>
+    <script src="~/js/reports-viewer.js"></script>
+
+    <script>
+        /**
+         * Client Selection Cookie Management
+         */
+        function setClientCookie() {
+            var selectedValue = document.getElementById("clientDropdown").value;
+            document.cookie = "selectedClient=" + selectedValue + "; path=/";
+            console.log('[ClientSelector] Client changed to:', selectedValue);
+        }
+
+        // Restore client selection from cookie on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            var cookie = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('selectedClient='));
+
+            if (cookie) {
+                var value = cookie.split("=")[1];
+                document.getElementById("clientDropdown").value = value;
+                console.log('[ClientSelector] Restored client:', value);
+            }
+        });
+    </script>
+</body>
+</html>

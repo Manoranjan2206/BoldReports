@@ -1,0 +1,10 @@
+{
+  "DashboardId": "ff5bc82d-8b55-473a-a894-12bc06ffd08b",
+  "ServerUrl": "https://onpremise-demo.boldbi.com/bi",
+  "UserEmail": "venkataprasad.subramani@syncfusion.com",
+  "EmbedSecret": "DmTVfd8FcKDlxIP3bITRlkPgbZU6z9rW",
+  "EmbedType": "component",
+  "Environment": "onpremise",
+  "ExpirationTime": "10000",
+  "SiteIdentifier": "site/presalepoc"
+}

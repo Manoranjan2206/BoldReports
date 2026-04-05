@@ -1,0 +1,217 @@
+﻿@using BoldBI.Embed.Sample.Models
+@{
+    ViewBag.Title = "Home";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EcoInteractive View</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="icon" type="image/png" href="~/Elogo.png" />
+
+    <script src="https://cdn.boldbi.com/embedded-sdk/latest/boldbi-embed.js"></script>
+    <script src="~/js/Index.js"></script>
+    <link rel="stylesheet" href="~/css/site.css" />
+
+    <script>
+
+        var rootUrl = "@ViewBag.ServerUrl";
+        var dashboardId = "@ViewBag.DashboardId";
+        var siteIdentifier = "@ViewBag.SiteIdentifier";
+        var environment = "@ViewBag.Environment";
+        var embedType = "@ViewBag.EmbedType";
+        var authorizationServerUrl = "@Url.Action("AuthorizationServer", "Home")";
+        var getDashboardsUrl = "@Url.Action("GetDashboards", "Home")";
+
+
+               window.onload = function () {
+
+            var cookie = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('selectedClient='));
+
+            if (cookie) {
+                document.getElementById("clientDropdown").value = cookie.split("=")[1];
+            }
+
+            // ✅ Set default dashboard explicitly
+            dashboardId = "f3513623-c529-4c19-965f-2e3bc3c92179";
+
+            renderDashboard(dashboardId);
+        };
+
+    </script>
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: Arial;
+        }
+
+        /* layout */
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* sidebar */
+
+        .sidebar {
+            width: 160px;
+            background: #28283a;
+            color: white;
+            padding: 20px 15px;
+        }
+
+        .logo-img {
+            width: 140px;
+            margin-bottom: 40px;
+        }
+
+        .menu {
+            list-style: none;
+            padding: 0;
+        }
+
+            .menu li {
+                padding: 12px 15px;
+                margin-bottom: 10px;
+                border-radius: 6px;
+                cursor: pointer;
+            }
+
+                .menu li.active {
+                    background: #cfe7fa;
+                    color: #354b59;
+                    font-weight: bold;
+                }
+
+        /* main */
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f5f6fa;
+        }
+
+        /* top bar */
+
+        .top-bar {
+            height: 60px;
+            background: #28283a; /* matches EcoInteractive logo tone */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* push everything to right */
+            padding: 0 25px;
+        }
+
+        /* client dropdown */
+
+        .client-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .client-selector label {
+                font-weight: 500;
+            }
+
+            .client-selector select {
+                padding: 6px 12px;
+                border-radius: 6px;
+                border: none;
+                font-size: 14px;
+            }
+
+        /* dashboard */
+
+        #viewer-section {
+            flex: 1;
+        }
+
+        #dashboard {
+            width: 100%;
+            height: 100%;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- Sidebar -->
+
+        <div class="sidebar">
+
+            <img src="~/Ecointeractive.png" class="logo-img" />
+
+
+            <ul class="menu">
+                <li class="active"
+                    onclick="loadDashboard(this, 'f3513623-c529-4c19-965f-2e3bc3c92179')">
+                    Transportation Project Analytics Dashboard
+                </li>
+
+                <li onclick="loadDashboard(this, 'ff5bc82d-8b55-473a-a894-12bc06ffd08b')">
+                    Eco Interactive Reports Dashboard
+                </li>
+
+                <li onclick="window.location.href='/BoldReports'">
+                    Eco Interactive Reports
+                </li>
+            </ul>
+
+        </div>
+
+        <!-- Main Content -->
+
+        <div class="main-content">
+
+            <!-- Top bar -->
+            <!-- Top bar -->
+
+            <div class="top-bar">
+
+                <div class="top-left">
+                    <!-- Empty space to balance sidebar -->
+                </div>
+
+                <div class="client-selector">
+
+                    <label>Client</label>
+
+                    <select id="clientDropdown" onchange="setClientCookie()">
+                        <option value="1">Eco Projects-Client 1</option>
+                        <option value="2">Eco Trackers-Client 2</option>
+                    </select>
+
+                </div>
+
+            </div>
+
+            <!-- Dashboard -->
+
+            <div id="viewer-section">
+                <div id="dashboard"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
